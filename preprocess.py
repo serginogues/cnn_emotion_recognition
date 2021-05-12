@@ -4,81 +4,114 @@ https://jovian.ai/himani007/logistic-regression-fer
 """
 from config import *
 
-data_df = pd.read_csv(FER_PATH)
-
-Labels = {
-    0: 'Angry',
-    1: 'Disgust',
-    2: 'Fear',
-    3: 'Happy',
-    4: 'Sad',
-    5: 'Surprise',
-    6: 'Neutral'
-}
-train_df = data_df[data_df['Usage'] == 'Training']
-valid_df = data_df[data_df['Usage'] == 'PublicTest'].reset_index(drop=True)
-test_df = data_df[data_df['Usage'] == 'PrivateTest'].reset_index(drop=True)
+print("*******Preprocess starts******")
 
 
-def show_image(df, idx):
-    print('expression: ', df.iloc[idx])
-    image = np.array([[int(i) for i in x.split()] for x in df.loc[idx, ['pixels']]])
-    print(image.shape)
-    image = image.reshape(48, 48)
-    plt.imshow(image, interpolation='nearest', cmap='gray')
-    plt.show()
+class FileReader:
+    def __init__(self, csv_file_name):
+        self._csv_file_name = csv_file_name
+
+    def read(self):
+        self._data = pd.read_csv(self._csv_file_name)
 
 
-# show_image(train_df, 101)
+file_reader = FileReader(FER_PATH)
+file_reader.read()
+columns = file_reader._data.columns.values
+classes = sorted(file_reader._data['emotion'].unique())
 
 
-class expressions(Dataset):
-    def __init__(self, df, transforms_=None):
-        self.df = df
-        self.transforms = transforms_
+# distribution = file_reader._data.groupby('Usage')['emotion'].value_counts().to_dict()
+
+
+class FER2013Dataset(Dataset):
+    """FER2013 Dataset"""
+
+    def __init__(self, X, Y, transform=None):
+        """
+        Args:
+            X (np array): Nx1x32x32.
+            Y (np array): Nx1.
+            transform (callable, optional): Optional transform to be applied
+                on a sample.
+        """
+        self.transform = transform
+        self._X = X
+        self._y = Y
 
     def __len__(self):
-        return len(self.df)
+        return len(self._X)
 
-    def __getitem__(self, index):
-        row = self.df.loc[index]
-        image, label = np.array([x.split() for x in self.df.loc[index, ['pixels']]]), row['emotion']
-        # image = image.reshape(1,48,48)
-        image = np.asarray(image).astype(np.uint8).reshape(48, 48, 1)
-        # image = np.reshape(image,(1,48,48))
-
-        if self.transforms:
-            image = self.transforms(image)
-
-        return image.clone().detach(), label
-
-    # return torch.tensor(image,dtype = torch.float), label
+    def __getitem__(self, idx):
+        if self.transform:
+            return {'inputs': self.transform(self._X[idx]), 'labels': self._y[idx]}
+        return {'inputs': self._X[idx], 'labels': self._y[idx]}
 
 
-stats = ([0.5], [0.5])
-train_tsfm = transforms.Compose([
-    transforms.ToPILImage(),
-    # T.RandomHorizontalFlip(), #--> only required to prevent over fitting
-    # T.RandomRotation(10),     #-->   "  "
-    transforms.ToTensor(),
-    transforms.Normalize(*stats, inplace=True)
+class Data:
+    """
+        Initialize the Data utility.
+        :param data:
+                    a pandas DataFrame containing data from the
+                    FER2013 dataset.
+        :type file_path:
+                    DataFrame
+        class variables:
+        _x_train, _y_train:
+                    Training data and corresopnding labels
+        _x_test, _y_test:
+                    Testing data and corresopnding labels
+        _x_valid, _y_validation:
+                    Validation/Development data and corresopnding labels
+
+    """
+
+    def __init__(self, data):
+        self._x_train, self._y_train = [], []
+        self._x_test, self._y_test = [], []
+        self._x_valid, self._y_valid = [], []
+
+        for xdx, x in enumerate(tqdm(data.values)):
+            pixels = []
+            label = None
+            for idx, i in enumerate(x[1].split(' ')):
+                pixels.append(int(i))
+            pixels = np.array(pixels).reshape((1, 48, 48))
+
+            if x[2] == 'Training':
+                self._x_train.append(pixels)
+                self._y_train.append(int(x[0]))
+            elif x[2] == 'PublicTest':
+                self._x_test.append(pixels)
+                self._y_test.append(int(x[0]))
+            else:
+                self._x_valid.append(pixels)
+                self._y_valid.append(int(x[0]))
+        self._x_train, self._y_train = np.array(self._x_train).reshape((len(self._x_train), 1, 48, 48)), \
+                                       np.array(self._y_train, dtype=np.int64)
+        self._x_test, self._y_test = np.array(self._x_test).reshape((len(self._x_test), 1, 48, 48)), \
+                                     np.array(self._y_test, dtype=np.int64)
+        self._x_valid, self._y_valid = np.array(self._x_valid).reshape((len(self._x_valid), 1, 48, 48)), \
+                                       np.array(self._y_valid, dtype=np.int64)
+
+
+data = Data(file_reader._data)
+data._x_train = np.asarray(data._x_train, dtype=np.float64)
+data._x_train -= np.mean(data._x_train, axis=0)
+plt.figure()
+plt.imshow(data._x_train[10].reshape((48, 48)), interpolation='none', cmap='gray')
+plt.show()
+
+preprocess = transforms.Compose([
+    transforms.RandomHorizontalFlip(),
+    transforms.RandomRotation(6),
+    transforms.ColorJitter()
 ])
-valid_tsfm = transforms.Compose([
-    transforms.ToPILImage(),
-    transforms.ToTensor(),
-    transforms.Normalize(*stats, inplace=True)
-])
 
-train_ds = expressions(train_df, train_tsfm)
-valid_ds = expressions(valid_df, valid_tsfm)
-test_ds = expressions(test_df, valid_tsfm)
+train_set = FER2013Dataset(data._x_train, data._y_train, transform=preprocess)
+test_set = FER2013Dataset(data._x_valid, data._y_valid)
 
-batch_size = 400
-train_dl = DataLoader(train_ds, batch_size, shuffle=True,
-                      num_workers=3, pin_memory=True)
-valid_dl = DataLoader(valid_ds, batch_size * 2,
-                      num_workers=2, pin_memory=True)
-test_dl = DataLoader(test_ds, batch_size * 2,
-                     num_workers=2, pin_memory=True)
+train_loader = DataLoader(train_set, batch_size=BATCH_SIZE, num_workers=0, shuffle=True)
+test_loader = DataLoader(test_set, batch_size=BATCH_SIZE, num_workers=0, shuffle=False)
 
 print("*******Preprocess finished******")
