@@ -1,5 +1,9 @@
 """
 Fer2013 Dataset
+
+The Fer2013 dataset contains 35,887 grayscale images of faces with 48*48 pixels.
+7 categories: Angry, Disgust, Fear, Happy, Sad, Surprise, and Neutral
+
 https://jovian.ai/himani007/logistic-regression-fer
 """
 from config import *

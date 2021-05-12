@@ -6,7 +6,6 @@ https://jovian.ai/himani007/logistic-regression-fer
 from preprocess import *
 
 input_size = 48 * 48
-num_labels = len(Labels)
 
 
 def accuracy(output, labels):
@@ -68,3 +67,5 @@ criterion = nn.CrossEntropyLoss()
 
 # optimizer = optim.Adadelta(cnn.parameters(), lr=LR, rho=0.95, eps=1e-08)
 optimizer = torch.optim.SGD(cnn.parameters(), lr=LR)
+
+#ToDo: train function, test, evaluate
