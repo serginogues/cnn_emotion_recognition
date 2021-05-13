@@ -15,7 +15,23 @@ import torchvision.transforms as transforms
 import matplotlib.pyplot as plt
 
 # Device configuration
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+#device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+## Initial settings seed and device ##
+SET_SEED=11
+# Compatibility with CUDA and GPU -> remember to move into GPU
+device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+#make deterministic the stochastic operation to have better comparable tests
+if SET_SEED!=-1:
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed(SET_SEED)
+        torch.cuda.manual_seed_all(SET_SEED)
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
+    np.random.seed(SET_SEED)
+    torch.manual_seed(SET_SEED)
+
+
 
 FER_PATH = 'data/fer2013.csv'  # Path to the csv file with emotion, pixel & usage.
 NUM_EPOCHS = 100

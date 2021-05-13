@@ -7,7 +7,6 @@ from preprocess import *
 
 input_size = 48 * 48
 
-
 def accuracy(output, labels):
     predictions, preds = torch.max(output, dim=1)
     return torch.tensor(torch.sum(preds == labels).item() / len(preds))
@@ -58,14 +57,41 @@ class CNN(nn.Module):
         y = self.fc2(x)
         return y
 
+    def train(self, epochs, optimizer, criterion, train_dataloader, test_dataloader):
+        loss_history = []
+        acc_history = []
+        for epoch in range(epochs):
+            print('Epoch ', epoch+1, 'of ', epochs)
+            count = 0 
+            for X, label in train_dataloader:
+                pred = self.forward(X) 
+                J = criterion(pred, label) 
+                
+                optimizer.zero_grad() 
+                J.backward()
+                optimizer.step() #backpropagate
+                print(' Batch -> ',count)
+                count += 1
+            for X, label in test_dataloader:
+                #calculate the accuracy on test set and print
+                pred = self.forward(X)
+                J = criterion(pred, label) 
+                acc = accuracy(pred, label)
+                print(' Loss: ', J)
+                loss_history.append(J)
+                print(' Accuracy: ', acc)
+                acc_history.append(acc)
+
+        return loss_history, acc_history
 
 cnn = CNN()
 cnn = cnn.to(device)
 
+# loss function
 criterion = nn.CrossEntropyLoss()
-#ToDO: check which optimizer works best
 
 # optimizer = optim.Adadelta(cnn.parameters(), lr=LR, rho=0.95, eps=1e-08)
 optimizer = torch.optim.SGD(cnn.parameters(), lr=LR)
 
 #ToDo: train function, test, evaluate
+cnn.train(2, optimizer, criterion, train_loader, test_loader)
