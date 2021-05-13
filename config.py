@@ -33,7 +33,7 @@ if SET_SEED!=-1:
 
 
 
-FER_PATH = 'data/fer2013.csv'  # Path to the csv file with emotion, pixel & usage.
+FER_PATH = '../archive/fer2013.csv'  # Path to the csv file with emotion, pixel & usage.
 NUM_EPOCHS = 100
 BATCH_SIZE = 128
 LR = 0.1

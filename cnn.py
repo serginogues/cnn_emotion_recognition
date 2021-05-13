@@ -62,8 +62,10 @@ class CNN(nn.Module):
         acc_history = []
         for epoch in range(epochs):
             print('Epoch ', epoch+1, 'of ', epochs)
+             
             count = 0 
             for X, label in train_dataloader:
+                X, label = X.to(device), label.to(device)
                 pred = self.forward(X) 
                 J = criterion(pred, label) 
                 
@@ -72,15 +74,21 @@ class CNN(nn.Module):
                 optimizer.step() #backpropagate
                 print(' Batch -> ',count)
                 count += 1
+            
+            _pred = torch.tensor([])
+            _label = torch.tensor([])
+            _J = 0
             for X, label in test_dataloader:
                 #calculate the accuracy on test set and print
                 pred = self.forward(X)
-                J = criterion(pred, label) 
-                acc = accuracy(pred, label)
-                print(' Loss: ', J)
-                loss_history.append(J)
-                print(' Accuracy: ', acc)
-                acc_history.append(acc)
+                _pred = torch.cat((_pred, pred))
+                _label = torch.cat((_label, label))
+                _J += criterion(pred, label).item()
+        
+            print(' Loss: ', _J)
+            loss_history.append(_J)
+            print(' Accuracy: ', accuracy(_pred, _label).item())
+            acc_history.append(accuracy(_pred, _label).item())
 
         return loss_history, acc_history
 

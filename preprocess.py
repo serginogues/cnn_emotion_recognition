@@ -47,9 +47,16 @@ class FER2013Dataset(Dataset):
         return len(self._X)
 
     def __getitem__(self, idx):
+        """
         if self.transform:
             return {'inputs': self.transform(self._X[idx]), 'labels': self._y[idx]}
         return {'inputs': self._X[idx], 'labels': self._y[idx]}
+        """
+        #one_hot_encoding = [torch.tensor([1.0,0.0,0.0,0.0,0.0,0.0,0.0]),torch.tensor([0.0,1.0,0.0,0.0,0.0,0.0,0.0]),torch.tensor([0.0,0.0,1.0,0.0,0.0,0.0,0.0]),torch.tensor([0.0,0.0,0.0,1.0,0.0,0.0,0.0]),torch.tensor([0.0,0.0,0.0,0.0,1.0,0.0,0.0]),torch.tensor([0.0,0.0,0.0,0.0,0.0,1.0,0.0]),torch.tensor([0.0,0.0,0.0,0.0,0.0,0.0,1.0])]
+        if self.transform:
+            return self.transform(torch.from_numpy(self._X[idx]).float()), self._y[idx]
+        return torch.from_numpy(self._X[idx]).float(), self._y[idx]
+        
 
 
 class Data:
@@ -100,11 +107,11 @@ class Data:
 
 
 data = Data(file_reader._data)
-data._x_train = np.asarray(data._x_train, dtype=np.float64)
-data._x_train -= np.mean(data._x_train, axis=0)
-plt.figure()
-plt.imshow(data._x_train[10].reshape((48, 48)), interpolation='none', cmap='gray')
-plt.show()
+#data._x_train = np.asarray(data._x_train, dtype=np.float64)
+#data._x_train -= np.mean(data._x_train, axis=0)
+#plt.figure()
+#plt.imshow(data._x_train[10].reshape((48, 48)), interpolation='none', cmap='gray')
+#plt.show()
 
 preprocess = transforms.Compose([
     transforms.RandomHorizontalFlip(),
@@ -112,8 +119,8 @@ preprocess = transforms.Compose([
     transforms.ColorJitter()
 ])
 
-train_set = FER2013Dataset(data._x_train, data._y_train, transform=preprocess)
-test_set = FER2013Dataset(data._x_valid, data._y_valid)
+train_set = FER2013Dataset(np.asarray(data._x_train, dtype=np.single), data._y_train, transform=preprocess)
+test_set = FER2013Dataset(np.asarray(data._x_valid, dtype=np.single), data._y_valid)
 
 train_loader = DataLoader(train_set, batch_size=BATCH_SIZE, num_workers=0, shuffle=True)
 test_loader = DataLoader(test_set, batch_size=BATCH_SIZE, num_workers=0, shuffle=False)
