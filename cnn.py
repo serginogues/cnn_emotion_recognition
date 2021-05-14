@@ -4,6 +4,7 @@ https://kaunild.github.io/experiments/experiments-1/
 https://jovian.ai/himani007/logistic-regression-fer
 """
 from preprocess import *
+import matplotlib.pyplot as plt
 
 input_size = 48 * 48
 
@@ -83,7 +84,7 @@ class CNN(nn.Module):
                 pred = self.forward(X)
                 _pred = torch.cat((_pred, pred))
                 _label = torch.cat((_label, label))
-                _J += criterion(pred, label).item()
+                _J += float(criterion(pred, label).item())
         
             print(' Loss: ', _J)
             loss_history.append(_J)
@@ -102,4 +103,8 @@ criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.SGD(cnn.parameters(), lr=LR)
 
 #ToDo: train function, test, evaluate
-cnn.train(2, optimizer, criterion, train_loader, test_loader)
+loss, acc = cnn.train(NUM_EPOCHS, optimizer, criterion, train_loader, test_loader)
+fig = plt.figure()
+plt.plot(loss)
+fig = plt.figure()
+plt.plot(acc)
