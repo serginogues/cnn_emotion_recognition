@@ -8,7 +8,7 @@ https://jovian.ai/himani007/logistic-regression-fer
 """
 from config import *
 
-print("*******Preprocess starts******")
+print("Preprocess starts")
 
 
 class FileReader:
@@ -23,7 +23,6 @@ file_reader = FileReader(FER_PATH)
 file_reader.read()
 columns = file_reader._data.columns.values
 classes = sorted(file_reader._data['emotion'].unique())
-
 
 # distribution = file_reader._data.groupby('Usage')['emotion'].value_counts().to_dict()
 
@@ -52,11 +51,10 @@ class FER2013Dataset(Dataset):
             return {'inputs': self.transform(self._X[idx]), 'labels': self._y[idx]}
         return {'inputs': self._X[idx], 'labels': self._y[idx]}
         """
-        #one_hot_encoding = [torch.tensor([1.0,0.0,0.0,0.0,0.0,0.0,0.0]),torch.tensor([0.0,1.0,0.0,0.0,0.0,0.0,0.0]),torch.tensor([0.0,0.0,1.0,0.0,0.0,0.0,0.0]),torch.tensor([0.0,0.0,0.0,1.0,0.0,0.0,0.0]),torch.tensor([0.0,0.0,0.0,0.0,1.0,0.0,0.0]),torch.tensor([0.0,0.0,0.0,0.0,0.0,1.0,0.0]),torch.tensor([0.0,0.0,0.0,0.0,0.0,0.0,1.0])]
+        # one_hot_encoding = [torch.tensor([1.0,0.0,0.0,0.0,0.0,0.0,0.0]),torch.tensor([0.0,1.0,0.0,0.0,0.0,0.0,0.0]),torch.tensor([0.0,0.0,1.0,0.0,0.0,0.0,0.0]),torch.tensor([0.0,0.0,0.0,1.0,0.0,0.0,0.0]),torch.tensor([0.0,0.0,0.0,0.0,1.0,0.0,0.0]),torch.tensor([0.0,0.0,0.0,0.0,0.0,1.0,0.0]),torch.tensor([0.0,0.0,0.0,0.0,0.0,0.0,1.0])]
         if self.transform:
             return self.transform(torch.from_numpy(self._X[idx]).float()), self._y[idx]
         return torch.from_numpy(self._X[idx]).float(), self._y[idx]
-        
 
 
 class Data:
@@ -107,11 +105,6 @@ class Data:
 
 
 data = Data(file_reader._data)
-#data._x_train = np.asarray(data._x_train, dtype=np.float64)
-#data._x_train -= np.mean(data._x_train, axis=0)
-#plt.figure()
-#plt.imshow(data._x_train[10].reshape((48, 48)), interpolation='none', cmap='gray')
-#plt.show()
 
 preprocess = transforms.Compose([
     transforms.RandomHorizontalFlip(),
@@ -125,4 +118,4 @@ test_set = FER2013Dataset(np.asarray(data._x_valid, dtype=np.single), data._y_va
 train_loader = DataLoader(train_set, batch_size=BATCH_SIZE, num_workers=0, shuffle=True)
 test_loader = DataLoader(test_set, batch_size=BATCH_SIZE, num_workers=0, shuffle=False)
 
-print("*******Preprocess finished******")
+print("Preprocess finished")

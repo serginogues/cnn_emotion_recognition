@@ -14,15 +14,12 @@ from torch.utils.data import DataLoader, Dataset
 import torchvision.transforms as transforms
 import matplotlib.pyplot as plt
 
-# Device configuration
-#device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
-## Initial settings seed and device ##
-SET_SEED=11
+# Initial settings seed and device
+SET_SEED = 11
 # Compatibility with CUDA and GPU -> remember to move into GPU
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-#make deterministic the stochastic operation to have better comparable tests
-if SET_SEED!=-1:
+# make deterministic the stochastic operation to have better comparable tests
+if SET_SEED != -1:
     if torch.cuda.is_available():
         torch.cuda.manual_seed(SET_SEED)
         torch.cuda.manual_seed_all(SET_SEED)
@@ -35,5 +32,6 @@ if SET_SEED!=-1:
 
 FER_PATH = '../archive/fer2013.csv'  # Path to the csv file with emotion, pixel & usage.
 NUM_EPOCHS = 100
-BATCH_SIZE = 128
-LR = 0.1
+BATCH_SIZE = 25
+NUM_LABELS = 7
+LR = 0.001
