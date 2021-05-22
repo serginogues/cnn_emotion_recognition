@@ -200,3 +200,7 @@ def visualize_filter(model):
     plt.axis('off')
     plt.ioff()
     plt.show()
+
+
+def print_architecture(model):
+    [print(x) for x in model.children()]
