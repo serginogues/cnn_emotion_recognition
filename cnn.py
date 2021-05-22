@@ -46,7 +46,7 @@ class CNN(nn.Module):
         )
         self.fc2 = nn.Sequential(
             nn.Linear(500, NUM_LABELS),  # 7 classes output
-            nn.LogSoftmax(dim=1)
+            # nn.LogSoftmax(dim=1) # IMPORTANT: No Softmax must be applied in the last layer if we use the Cross-Entropy Loss
         )
 
     def forward(self, x):
@@ -64,7 +64,11 @@ class CNN(nn.Module):
 model = CNN().to(device)
 
 criterion = nn.CrossEntropyLoss()  # loss function
-optimizer = torch.optim.SGD(model.parameters(), lr=LR)  # optimizer = optim.Adadelta(cnn.parameters(), lr=LR, rho=0.95, eps=1e-08)
+#TODO: check which optimizer works best
+LR = 0.001
+optimizer = torch.optim.SGD(model.parameters(), lr=LR)
+# optimizer = torch.optim.Adam(model.parameters(), lr=LR)
+# optimizer = optim.Adadelta(cnn.parameters(), lr=LR, rho=0.95, eps=1e-08)
 
 
 def train():
@@ -74,30 +78,35 @@ def train():
     for epoch in range(NUM_EPOCHS):
         print('Epoch ', epoch + 1, 'of ', NUM_EPOCHS)
 
+        # TRAIN MODEL
         for i, data in enumerate(train_loader, 0):
             # get the training data
             X, label = data
             X, label = X.to(device), label.to(device)
-
-            # reset optimizer gradients
-            optimizer.zero_grad()
 
             # forward pass
             pred = model.forward(X)
 
             # backward pass
             loss = criterion(pred, label)
-            loss.backward()
-
-            # optimize with backprop
-            optimizer.step()
-
             # print current loss
             running_loss += loss.item()
             if i % 200 == 199:  # print every 200 mini-batches
                 print('[%d, %5d] loss: %.3f' % (epoch + 1, i + 1, running_loss / 200))
                 running_loss = 0.0
 
+            # Before the backward pass, use the optimizer object to zero all of the
+            # gradients for the variables it will update (which are the learnable
+            # weights of the model). This is because by default, gradients are
+            # accumulated in buffers( i.e, not overwritten) whenever .backward()
+            # is called.
+            optimizer.zero_grad()
+            loss.backward()
+
+            # optimize with backprop
+            optimizer.step()
+
+        # STORE CURRENT ACCURACY
         _pred = torch.tensor([])
         _label = torch.tensor([])
         _J = 0
@@ -114,9 +123,11 @@ def train():
         print(' Accuracy: ', accuracy(_pred, _label).item())
         acc_history.append(accuracy(_pred, _label).item())
 
+    # SAVE THE MODEL
     torch.save(model.state_dict(), SAVE_PATH)
     print("Training finished")
 
+    # PLOT ACCURACY
     plt.subplot(1, 2, 1)
     plt.title('Loss')
     plt.plot(loss_history)
@@ -160,3 +171,32 @@ def test():
             if n_correct != 0:
                 acc = 100.0 * n_correct / n_samples
                 print(f'Accuracy of {classes[i]}: {acc} %')
+
+
+def visualize_filter(model):
+    """
+    :param kernel: model.conv1[0]
+    nn.Conv2d(3, 1, 3).weight.data.clone()
+    :return:
+    """
+    def visTensor(tensor, ch=0, allkernels=False, nrow=8, padding=1):
+        """
+        https://stackoverflow.com/questions/55594969/how-to-visualise-filters-in-a-cnn-with-pytorchhttps://stackoverflow.com/questions/55594969/how-to-visualise-filters-in-a-cnn-with-pytorch
+        """
+        n,c,w,h = tensor.shape
+
+        if allkernels: tensor = tensor.view(n*c, -1, w, h)
+        elif c != 3: tensor = tensor[:,ch,:,:].unsqueeze(dim=1)
+
+        rows = np.min((tensor.shape[0] // nrow + 1, 64))
+        grid = utils.make_grid(tensor, nrow=nrow, normalize=True, padding=padding)
+        plt.figure( figsize=(nrow,rows) )
+        plt.imshow(grid.numpy().transpose((1, 2, 0)))
+
+    kernels = model.conv1[0].weight.data.clone()
+    print(kernels.shape)
+    visTensor(kernels, ch=0, allkernels=False)
+
+    plt.axis('off')
+    plt.ioff()
+    plt.show()

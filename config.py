@@ -12,6 +12,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import DataLoader, Dataset
 import torchvision.transforms as transforms
+from torchvision import utils
 import matplotlib.pyplot as plt
 
 # Initial settings seed and device
