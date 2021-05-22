@@ -27,36 +27,36 @@ class CNN(nn.Module):
         self.conv1 = nn.Sequential(
             nn.Conv2d(1, 64, kernel_size=5, padding=2),  # Out = 48x48x64 48=48-5+2*2+1 where K=64
             nn.ELU(),
-            nn.BatchNorm2d(BATCH_SIZE)
+            nn.BatchNorm2d(64)
         )
         self.conv2 = nn.Sequential(
-            nn.Conv2d(1, 64, kernel_size=5, padding=2),  # Out = 48x48x64 and K=32
+            nn.Conv2d(64, 64, kernel_size=5, padding=2),  # Out = 48x48x64 and K=32
             nn.ELU(),
-            nn.BatchNorm2d(BATCH_SIZE),
+            nn.BatchNorm2d(64),
             nn.MaxPool2d(kernel_size=(2, 2)),
             nn.Dropout(0.4)
         )
         self.conv3 = nn.Sequential(
-            nn.Conv2d(1, 128, kernel_size=3, padding=1),  # Out = 48x48x128 and K=32
+            nn.Conv2d(64, 128, kernel_size=3, padding=1),  # Out = 48x48x128 and K=32
             nn.ELU(),
-            nn.BatchNorm2d(BATCH_SIZE)
+            nn.BatchNorm2d(128)
         )
         self.conv4 = nn.Sequential(
-            nn.Conv2d(1, 128, kernel_size=3, padding=1),  # Out = 48x48x128 and K=32
+            nn.Conv2d(128, 128, kernel_size=3, padding=1),  # Out = 48x48x128 and K=32
             nn.ELU(),
-            nn.BatchNorm2d(BATCH_SIZE),
+            nn.BatchNorm2d(128),
             nn.MaxPool2d(kernel_size=(2, 2)),
             nn.Dropout(0.4)
         )
         self.conv5 = nn.Sequential(
-            nn.Conv2d(1, 256, kernel_size=3, padding=1),  # Out = 48x48x256 and K=32
+            nn.Conv2d(128, 256, kernel_size=3, padding=1),  # Out = 48x48x256 and K=32
             nn.ELU(),
-            nn.BatchNorm2d(BATCH_SIZE)
+            nn.BatchNorm2d(256)
         )
         self.conv6 = nn.Sequential(
-            nn.Conv2d(1, 256, kernel_size=3, padding=1),  # Out = 48x48x256 and K=32
+            nn.Conv2d(256, 256, kernel_size=3, padding=1),  # Out = 48x48x256 and K=32
             nn.ELU(),
-            nn.BatchNorm2d(BATCH_SIZE),
+            nn.BatchNorm2d(256),
             nn.MaxPool2d(kernel_size=(2, 2)),
             nn.Dropout(0.4)
         )
@@ -66,28 +66,37 @@ class CNN(nn.Module):
         )
 
         self.fc1 = nn.Sequential(
-            nn.Linear(48 * 48 * 256, 128),
+            nn.Linear(6 * 6 * 256, 128),
             nn.ELU(),
-            nn.BatchNorm2d(BATCH_SIZE),
+            nn.BatchNorm1d(128),
             nn.Dropout(0.6)
         )
         self.fc2 = nn.Sequential(
-            nn.Linear(500, NUM_LABELS),  # 7 classes output
+            nn.Linear(128, NUM_LABELS),  # 7 classes output
             # nn.LogSoftmax(dim=1) # IMPORTANT: No Softmax must be applied in the last layer if we use the Cross-Entropy Loss
         )
 
     def forward(self, x):
         x = self.conv1(x)
+        #print(x.shape)
         x = self.conv2(x)
+        #print(x.shape)
         x = self.conv3(x)
+        #print(x.shape)
         x = self.conv4(x)
+        #print(x.shape)
         x = self.conv5(x)
+        #print(x.shape)
         x = self.conv6(x)
+        #print(x.shape)
         x = self.flat(x)
+        #print(x.shape)
         # x = x.view(-1, 2 * 2 * 128)
         #x = x.view(x.size(0), -1)
         x = self.fc1(x)
+        #print(x.shape)
         y = self.fc2(x)
+        #print(y.shape)
         return y
 
 
