@@ -4,6 +4,7 @@ https://kaunild.github.io/experiments/experiments-1/
 https://jovian.ai/himani007/logistic-regression-fer
 """
 from preprocess import *
+from config import *
 
 input_size = 48 * 48
 
@@ -24,25 +25,51 @@ class CNN(nn.Module):
         # nn.BatchNorm2d(output_dim)
 
         self.conv1 = nn.Sequential(
-            nn.Conv2d(1, 32, kernel_size=5),  # Out = 44x44x32 where 44=48-5+1 and K=32
-            nn.MaxPool2d(kernel_size=(2, 2)),  # Out = 23x23x32
-            nn.ReLU()
+            nn.Conv2d(1, 64, kernel_size=5, padding=2),  # Out = 48x48x64 48=48-5+2*2+1 where K=64
+            nn.ELU(),
+            nn.BatchNorm2d(BATCH_SIZE)
         )
         self.conv2 = nn.Sequential(
-            nn.Conv2d(in_channels=32, out_channels=64, kernel_size=5),
-            # 22x22x32 -> Out = 18x18x64 where 18=22-5+1 and 64=32*2
-            nn.MaxPool2d(kernel_size=(2, 2)),  # 19x19x64 -> O = 9x9x64
-            nn.ReLU()
+            nn.Conv2d(1, 64, kernel_size=5, padding=2),  # Out = 48x48x64 and K=32
+            nn.ELU(),
+            nn.BatchNorm2d(BATCH_SIZE),
+            nn.MaxPool2d(kernel_size=(2, 2)),
+            nn.Dropout(0.4)
         )
         self.conv3 = nn.Sequential(
-            nn.Conv2d(in_channels=64, out_channels=128, kernel_size=5),
-            # 9x9x64 -> Out = 5x5x128 where 5=9-5+1 and 128=64*2
-            nn.MaxPool2d(kernel_size=(2, 2)),  # 5x5x128 -> O = 2x2x128
-            nn.ReLU()
+            nn.Conv2d(1, 128, kernel_size=3, padding=1),  # Out = 48x48x128 and K=32
+            nn.ELU(),
+            nn.BatchNorm2d(BATCH_SIZE)
         )
+        self.conv4 = nn.Sequential(
+            nn.Conv2d(1, 128, kernel_size=3, padding=1),  # Out = 48x48x128 and K=32
+            nn.ELU(),
+            nn.BatchNorm2d(BATCH_SIZE),
+            nn.MaxPool2d(kernel_size=(2, 2)),
+            nn.Dropout(0.4)
+        )
+        self.conv5 = nn.Sequential(
+            nn.Conv2d(1, 256, kernel_size=3, padding=1),  # Out = 48x48x256 and K=32
+            nn.ELU(),
+            nn.BatchNorm2d(BATCH_SIZE)
+        )
+        self.conv6 = nn.Sequential(
+            nn.Conv2d(1, 256, kernel_size=3, padding=1),  # Out = 48x48x256 and K=32
+            nn.ELU(),
+            nn.BatchNorm2d(BATCH_SIZE),
+            nn.MaxPool2d(kernel_size=(2, 2)),
+            nn.Dropout(0.4)
+        )
+
+        self.flat = nn.Sequential(
+            nn.Flatten()
+        )
+
         self.fc1 = nn.Sequential(
-            nn.Linear(2 * 2 * 128, 500),
-            nn.ReLU()
+            nn.Linear(48 * 48 * 256, 128),
+            nn.ELU(),
+            nn.BatchNorm2d(BATCH_SIZE),
+            nn.Dropout(0.6)
         )
         self.fc2 = nn.Sequential(
             nn.Linear(500, NUM_LABELS),  # 7 classes output
@@ -53,9 +80,12 @@ class CNN(nn.Module):
         x = self.conv1(x)
         x = self.conv2(x)
         x = self.conv3(x)
-
+        x = self.conv4(x)
+        x = self.conv5(x)
+        x = self.conv6(x)
+        x = self.flat(x)
         # x = x.view(-1, 2 * 2 * 128)
-        x = x.view(x.size(0), -1)
+        #x = x.view(x.size(0), -1)
         x = self.fc1(x)
         y = self.fc2(x)
         return y
