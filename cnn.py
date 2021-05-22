@@ -4,7 +4,7 @@ https://kaunild.github.io/experiments/experiments-1/
 https://jovian.ai/himani007/logistic-regression-fer
 """
 from preprocess import *
-from config import *
+from architectures import *
 
 input_size = 48 * 48
 
@@ -14,94 +14,17 @@ def accuracy(output, labels):
     return torch.tensor(torch.sum(preds == labels).item() / len(preds))
 
 
-class CNN(nn.Module):
-    def __init__(self):
-        super().__init__()
-
-        #TODO: exepriment with this
-        # we can try using
-        # nn.PReLU(): https://pytorch.org/docs/stable/generated/torch.nn.PReLU.html
-        # nn.ZeroPad2d(output_dim): https://pytorch.org/docs/stable/generated/torch.nn.ZeroPad2d.html
-        # nn.BatchNorm2d(output_dim)
-
-        self.conv1 = nn.Sequential(
-            nn.Conv2d(1, 64, kernel_size=5, padding=2),  # Out = 48x48x64 48=48-5+2*2+1 where K=64
-            nn.ELU(),
-            nn.BatchNorm2d(64)
-        )
-        self.conv2 = nn.Sequential(
-            nn.Conv2d(64, 64, kernel_size=5, padding=2),  # Out = 48x48x64 and K=32
-            nn.ELU(),
-            nn.BatchNorm2d(64),
-            nn.MaxPool2d(kernel_size=(2, 2)),
-            nn.Dropout(0.4)
-        )
-        self.conv3 = nn.Sequential(
-            nn.Conv2d(64, 128, kernel_size=3, padding=1),  # Out = 48x48x128 and K=32
-            nn.ELU(),
-            nn.BatchNorm2d(128)
-        )
-        self.conv4 = nn.Sequential(
-            nn.Conv2d(128, 128, kernel_size=3, padding=1),  # Out = 48x48x128 and K=32
-            nn.ELU(),
-            nn.BatchNorm2d(128),
-            nn.MaxPool2d(kernel_size=(2, 2)),
-            nn.Dropout(0.4)
-        )
-        self.conv5 = nn.Sequential(
-            nn.Conv2d(128, 256, kernel_size=3, padding=1),  # Out = 48x48x256 and K=32
-            nn.ELU(),
-            nn.BatchNorm2d(256)
-        )
-        self.conv6 = nn.Sequential(
-            nn.Conv2d(256, 256, kernel_size=3, padding=1),  # Out = 48x48x256 and K=32
-            nn.ELU(),
-            nn.BatchNorm2d(256),
-            nn.MaxPool2d(kernel_size=(2, 2)),
-            nn.Dropout(0.4)
-        )
-
-        self.flat = nn.Sequential(
-            nn.Flatten()
-        )
-
-        self.fc1 = nn.Sequential(
-            nn.Linear(6 * 6 * 256, 128),
-            nn.ELU(),
-            nn.BatchNorm1d(128),
-            nn.Dropout(0.6)
-        )
-        self.fc2 = nn.Sequential(
-            nn.Linear(128, NUM_LABELS),  # 7 classes output
-            # nn.LogSoftmax(dim=1) # IMPORTANT: No Softmax must be applied in the last layer if we use the Cross-Entropy Loss
-        )
-
-    def forward(self, x):
-        x = self.conv1(x)
-        #print(x.shape)
-        x = self.conv2(x)
-        #print(x.shape)
-        x = self.conv3(x)
-        #print(x.shape)
-        x = self.conv4(x)
-        #print(x.shape)
-        x = self.conv5(x)
-        #print(x.shape)
-        x = self.conv6(x)
-        #print(x.shape)
-        x = self.flat(x)
-        #print(x.shape)
-        # x = x.view(-1, 2 * 2 * 128)
-        #x = x.view(x.size(0), -1)
-        x = self.fc1(x)
-        #print(x.shape)
-        y = self.fc2(x)
-        #print(y.shape)
-        return y
+def get_model():
+    if MODEL_NAME == 'letnet5':
+        m = LeNet5()
+    elif MODEL_NAME == 'simple':
+        m = simple_cnn()
+    else:
+        m = CNN()
+    return m.to(device)
 
 
-model = CNN().to(device)
-
+model = get_model()
 criterion = nn.CrossEntropyLoss()  # loss function
 #TODO: check which optimizer works best
 LR = 0.001

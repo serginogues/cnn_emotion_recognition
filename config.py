@@ -34,4 +34,6 @@ SAVE_PATH = 'models/cnn.pth'
 NUM_EPOCHS = 100
 BATCH_SIZE = 25
 NUM_LABELS = 7
-LR = 0.001
+
+MODEL_NAME = ' '
+
