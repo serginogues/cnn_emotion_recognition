@@ -18,9 +18,9 @@ def get_model():
     if MODEL_NAME == 'letnet5':
         m = LeNet5()
     elif MODEL_NAME == 'simple':
-        m = simple_cnn()
+        m = custom1()
     else:
-        m = CNN()
+        m = custom2()
     return m.to(device)
 
 
@@ -52,7 +52,7 @@ def train():
             # backward pass
             loss = criterion(pred, label)
             # print current loss
-            running_loss += loss.item()
+            running_loss += float(loss.item())
             if i % 200 == 199:  # print every 200 mini-batches
                 print('[%d, %5d] loss: %.3f' % (epoch + 1, i + 1, running_loss / 200))
                 running_loss = 0.0
@@ -67,6 +67,7 @@ def train():
 
             # optimize with backprop
             optimizer.step()
+            del data,X,label
 
         # STORE CURRENT ACCURACY
         _pred = torch.tensor([])
