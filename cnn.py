@@ -28,9 +28,9 @@ model = get_model()
 criterion = nn.CrossEntropyLoss()  # loss function
 #TODO: check which optimizer works best
 LR = 0.001
-optimizer = torch.optim.SGD(model.parameters(), lr=LR)
-# optimizer = torch.optim.Adam(model.parameters(), lr=LR)
-# optimizer = optim.Adadelta(cnn.parameters(), lr=LR, rho=0.95, eps=1e-08)
+#optimizer = torch.optim.SGD(model.parameters(), lr=LR)
+optimizer = torch.optim.Adam(model.parameters(), lr=LR)
+#optimizer = optim.Adadelta(model.parameters(), lr=LR, rho=0.95, eps=1e-08)
 
 
 def train():

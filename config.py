@@ -29,11 +29,11 @@ if SET_SEED != -1:
     np.random.seed(SET_SEED)
     torch.manual_seed(SET_SEED)
 
-FER_PATH = '../archive/fer2013.csv'  # Path to the csv file with emotion, pixel & usage.
-SAVE_PATH = 'models/cnn.pth'
+FER_PATH = './drive/MyDrive/fer2013.csv'  # Path to the csv file with emotion, pixel & usage.
+SAVE_PATH = './cnn.pth'
 NUM_EPOCHS = 100
 BATCH_SIZE = 25
 NUM_LABELS = 7
 
-MODEL_NAME = ' '
+MODEL_NAME = 'simple'
 

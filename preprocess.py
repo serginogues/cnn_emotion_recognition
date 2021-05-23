@@ -114,6 +114,7 @@ preprocess = transforms.Compose([
 
 train_set = FER2013Dataset(np.asarray(data._x_train, dtype=np.single), data._y_train, transform=preprocess)
 test_set = FER2013Dataset(np.asarray(data._x_valid, dtype=np.single), data._y_valid)
+val_set = FER2013Dataset(np.asarray(data._x_test, dtype=np.single), data._y_test)
 
 train_loader = DataLoader(train_set, batch_size=BATCH_SIZE, num_workers=0, shuffle=True)
 test_loader = DataLoader(test_set, batch_size=BATCH_SIZE, num_workers=0, shuffle=False)

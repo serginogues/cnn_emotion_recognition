@@ -33,6 +33,7 @@ class CNN(nn.Module):
             nn.MaxPool2d(kernel_size=(2, 2)),
             nn.Dropout(0.4)
         )
+        
         self.conv5 = nn.Sequential(
             nn.Conv2d(128, 256, kernel_size=3, padding=1),  # Out = 48x48x256 and K=32
             nn.ELU(),
@@ -69,7 +70,7 @@ class CNN(nn.Module):
         x = self.conv3(x)
         #print(x.shape)
         x = self.conv4(x)
-        #print(x.shape)
+        print(x.shape)
         x = self.conv5(x)
         #print(x.shape)
         x = self.conv6(x)
@@ -88,7 +89,7 @@ class CNN(nn.Module):
 class simple_cnn(nn.Module):
     def __init__(self):
         super().__init__()
-
+        print('ok1')
         #TODO: exepriment with this
         # we can try using
         # nn.PReLU(): https://pytorch.org/docs/stable/generated/torch.nn.PReLU.html
@@ -96,25 +97,32 @@ class simple_cnn(nn.Module):
         # nn.BatchNorm2d(output_dim)
 
         self.conv1 = nn.Sequential(
-            nn.Conv2d(1, 32, kernel_size=5),  # Out = 44x44x32 where 44=48-5+1 and K=32
+            nn.Conv2d(1, 32, kernel_size=8, padding=4),  # Out = 44x44x32 where 44=48-5+1 and K=32
+            nn.ELU(),
+            nn.BatchNorm2d(32),
             nn.MaxPool2d(kernel_size=(2, 2)),  # Out = 23x23x32
-            nn.ReLU()
+            nn.Dropout(0.4)
         )
         self.conv2 = nn.Sequential(
-            nn.Conv2d(in_channels=32, out_channels=64, kernel_size=5),
+            nn.Conv2d(in_channels=32, out_channels=64, kernel_size=8, padding=4),
             # 22x22x32 -> Out = 18x18x64 where 18=22-5+1 and 64=32*2
+            nn.ELU(),
+            nn.BatchNorm2d(64),
             nn.MaxPool2d(kernel_size=(2, 2)),  # 19x19x64 -> O = 9x9x64
-            nn.ReLU()
+            nn.Dropout(0.4)
         )
         self.conv3 = nn.Sequential(
-            nn.Conv2d(in_channels=64, out_channels=128, kernel_size=5),
+            nn.Conv2d(in_channels=64, out_channels=128, kernel_size=8, padding=4),
             # 9x9x64 -> Out = 5x5x128 where 5=9-5+1 and 128=64*2
+            nn.ELU(),
+            nn.BatchNorm2d(128),
             nn.MaxPool2d(kernel_size=(2, 2)),  # 5x5x128 -> O = 2x2x128
-            nn.ReLU()
+            nn.Dropout(0.4)
         )
         self.fc1 = nn.Sequential(
-            nn.Linear(2 * 2 * 128, 500),
-            nn.ReLU()
+            nn.Linear(6 * 6 * 128, 500),
+            nn.ELU(),
+            nn.Dropout(0.6)
         )
         self.fc2 = nn.Sequential(
             nn.Linear(500, NUM_LABELS),  # 7 classes output
@@ -125,9 +133,10 @@ class simple_cnn(nn.Module):
         x = self.conv1(x)
         x = self.conv2(x)
         x = self.conv3(x)
-
+        #print(x.shape)
         # x = x.view(-1, 2 * 2 * 128)
         x = x.view(x.size(0), -1)  # x.size() = torch.Size([15, 512])
+        #print(x.shape)
         x = self.fc1(x)
         y = self.fc2(x)
         return y
