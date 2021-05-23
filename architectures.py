@@ -1,11 +1,12 @@
 """
 https://towardsdatascience.com/illustrated-10-cnn-architectures-95d78ace614d
 """
+from torch.utils.checkpoint import checkpoint
 
 from config import *
 
 
-class CNN(nn.Module):
+class custom2(nn.Module):
     def __init__(self):
         super().__init__()
 
@@ -81,12 +82,13 @@ class CNN(nn.Module):
         #x = x.view(x.size(0), -1)
         x = self.fc1(x)
         #print(x.shape)
-        y = self.fc2(x)
+        # y = self.fc2(x)
         #print(y.shape)
+        y = checkpoint(self.fc2, x)
         return y
 
 
-class simple_cnn(nn.Module):
+class custom1(nn.Module):
     def __init__(self):
         super().__init__()
         print('ok1')
